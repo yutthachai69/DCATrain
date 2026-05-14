@@ -2,6 +2,25 @@ import { type AssetCategory, type Broker, getBroker } from './brokers';
 
 export type AssetSource = 'yahoo' | 'coingecko';
 
+export type AssetTag =
+  | 'beginner'
+  | 'dividend'
+  | 'volatile'
+  | 'safe-haven'
+  | 'long-term'
+  | 'meme'
+  | 'advanced';
+
+export const TAG_CONFIG: Record<AssetTag, { label: string; color: string }> = {
+  beginner: { label: 'แนะนำมือใหม่', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' },
+  dividend: { label: 'ปันผลดี', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+  volatile: { label: 'ผันผวนสูง', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+  'safe-haven': { label: 'สินทรัพย์ปลอดภัย', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300' },
+  'long-term': { label: 'เหมาะลงทุนยาว', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300' },
+  meme: { label: 'Meme / เก็งกำไร', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300' },
+  advanced: { label: 'ผู้มีประสบการณ์', color: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' },
+};
+
 export type AssetConfig = {
   name: string;
   symbol: string;
@@ -10,6 +29,7 @@ export type AssetConfig = {
   category: AssetCategory;
   description: string;
   riskLabel: string;
+  tags: AssetTag[];
   brokerSlugs: string[];
   minBuy: string;
   avgReturn: string;
@@ -25,6 +45,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'สกุลเงินดิจิทัลอันดับ 1 ของโลก ราคาผันผวนสูงมาก แต่เติบโตแรงในระยะยาว เหมาะกับคนรับเสี่ยงสูง',
     riskLabel: 'สูงมาก',
+    tags: ['beginner', 'volatile', 'long-term'],
     brokerSlugs: ['bitkub', 'binance', 'coinbase'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~50-100%/ปี (แต่มีปีที่ -50% ด้วย)',
@@ -37,6 +58,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'Blockchain อันดับ 2 ที่ใช้รัน smart contract ผันผวนสูงแต่มีการใช้งานจริงมาก',
     riskLabel: 'สูงมาก',
+    tags: ['beginner', 'volatile', 'long-term'],
     brokerSlugs: ['bitkub', 'binance', 'coinbase'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~30-80%/ปี (แต่มีปีที่ -60% ด้วย)',
@@ -49,6 +71,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'เหรียญสำหรับโอนเงินข้ามประเทศ ราคาถูก โอนเร็ว เป็นที่นิยมในไทยมาก',
     riskLabel: 'สูงมาก',
+    tags: ['volatile'],
     brokerSlugs: ['bitkub', 'binance'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~20-60%/ปี (ผันผวนสูง)',
@@ -61,6 +84,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'Blockchain เร็วสุดๆ ค่าธรรมเนียมถูก เป็นคู่แข่ง Ethereum ที่กำลังเติบโต',
     riskLabel: 'สูงมาก',
+    tags: ['volatile', 'long-term'],
     brokerSlugs: ['bitkub', 'binance', 'coinbase'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~30-100%/ปี (ผันผวนสูงมาก)',
@@ -73,6 +97,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'เหรียญของ Binance exchange ที่ใหญ่ที่สุดในโลก ใช้จ่ายค่าธรรมเนียมในระบบ Binance',
     riskLabel: 'สูง',
+    tags: ['volatile'],
     brokerSlugs: ['binance', 'bitkub'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~20-50%/ปี',
@@ -85,6 +110,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'เหรียญ meme ที่เริ่มจากล้อเล่น แต่ตอนนี้มีมูลค่าตลาดสูงมาก ผันผวนตามกระแส',
     riskLabel: 'สูงมาก',
+    tags: ['meme', 'volatile'],
     brokerSlugs: ['bitkub', 'binance', 'coinbase'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: 'ไม่แน่นอน (ขึ้นลงตามกระแสข่าว)',
@@ -97,6 +123,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'Blockchain ที่เน้นการวิจัยและพัฒนาอย่างเป็นระบบ ถูกออกแบบมาให้ปลอดภัยและยั่งยืน',
     riskLabel: 'สูงมาก',
+    tags: ['advanced', 'volatile'],
     brokerSlugs: ['bitkub', 'binance'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~20-50%/ปี (ผันผวนสูง)',
@@ -109,6 +136,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'crypto',
     description: 'เครือข่ายที่ช่วยให้ Ethereum เร็วขึ้นและถูกลง เป็นที่นิยมในวงการ DeFi และ NFT',
     riskLabel: 'สูงมาก',
+    tags: ['advanced', 'volatile'],
     brokerSlugs: ['bitkub', 'binance', 'coinbase'],
     minBuy: 'เริ่มต้น 1 บาท',
     avgReturn: '~20-80%/ปี (ผันผวนสูงมาก)',
@@ -122,6 +150,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'thai-stock',
     description: 'หุ้นปตท. บริษัทพลังงานที่ใหญ่ที่สุดในไทย จ่ายปันผลสม่ำเสมอ',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'dividend', 'long-term'],
     brokerSlugs: ['settrade', 'scb-easy'],
     minBuy: 'ขั้นต่ำ 100 หุ้น × ราคาต่อหุ้น',
     avgReturn: '~5-10%/ปี (รวมปันผล)',
@@ -133,6 +162,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'thai-stock',
     description: 'หุ้นธนาคารไทยพาณิชย์ ธนาคารขนาดใหญ่ที่กำลังปรับตัวสู่ดิจิทัล จ่ายปันผลดี',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'dividend'],
     brokerSlugs: ['settrade', 'scb-easy'],
     minBuy: 'ขั้นต่ำ 100 หุ้น × ราคาต่อหุ้น',
     avgReturn: '~5-12%/ปี (รวมปันผล)',
@@ -144,6 +174,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'thai-stock',
     description: 'หุ้นพลังงานที่เติบโตเร็วที่สุดในไทย มีโรงไฟฟ้าทั้งในและต่างประเทศ',
     riskLabel: 'ปานกลาง-สูง',
+    tags: ['long-term'],
     brokerSlugs: ['settrade', 'scb-easy'],
     minBuy: 'ขั้นต่ำ 100 หุ้น × ราคาต่อหุ้น',
     avgReturn: '~10-20%/ปี',
@@ -155,6 +186,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'thai-stock',
     description: 'เจ้าของ 7-Eleven ในไทย มีสาขากว่า 14,000 แห่ง รายได้มั่นคงจากธุรกิจค้าปลีก',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'dividend', 'long-term'],
     brokerSlugs: ['settrade', 'scb-easy'],
     minBuy: 'ขั้นต่ำ 100 หุ้น × ราคาต่อหุ้น',
     avgReturn: '~8-15%/ปี',
@@ -166,6 +198,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'thai-stock',
     description: 'เจ้าของสนามบินสุวรรณภูมิและอีก 5 แห่ง รายได้ฟื้นตัวหลังนักท่องเที่ยวกลับมา',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['settrade', 'scb-easy'],
     minBuy: 'ขั้นต่ำ 100 หุ้น × ราคาต่อหุ้น',
     avgReturn: '~10-18%/ปี',
@@ -179,6 +212,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'us-stock',
     description: 'หุ้นบริษัท Apple บริษัทเทคโนโลยีที่ใหญ่ที่สุดในโลก มั่นคงแต่ยังเติบโตได้',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['jitta-wealth', 'finnomena'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 1,000 บาท',
     avgReturn: '~15-25%/ปี',
@@ -190,6 +224,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'us-stock',
     description: 'เจ้าของ Windows, Azure Cloud, Office365 และ AI Copilot รายได้มั่นคงเติบโตต่อเนื่อง',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['jitta-wealth', 'finnomena'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 1,000 บาท',
     avgReturn: '~15-25%/ปี',
@@ -201,6 +236,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'us-stock',
     description: 'เจ้าของ Google, YouTube, Android รายได้หลักจากโฆษณาออนไลน์และ Cloud',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['jitta-wealth', 'finnomena'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 1,000 บาท',
     avgReturn: '~15-25%/ปี',
@@ -212,6 +248,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'us-stock',
     description: 'ผู้นำรถยนต์ไฟฟ้า + พลังงานแสงอาทิตย์ + AI/Robotics ราคาผันผวนสูงกว่าหุ้นเทคทั่วไป',
     riskLabel: 'สูง',
+    tags: ['volatile', 'advanced'],
     brokerSlugs: ['jitta-wealth', 'finnomena'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 1,000 บาท',
     avgReturn: '~20-50%/ปี (ผันผวนสูง)',
@@ -225,6 +262,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'etf',
     description: 'ดัชนีหุ้น 500 บริษัทใหญ่ที่สุดในสหรัฐ กระจายความเสี่ยงได้ดี เหมาะกับมือใหม่',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term', 'safe-haven'],
     brokerSlugs: ['jitta-wealth', 'finnomena', 'kbank-invest'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 500-1,000 บาท',
     avgReturn: '~8-12%/ปี (เฉลี่ย 10 ปี)',
@@ -236,6 +274,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'etf',
     description: 'ดัชนีหุ้นเทคโนโลยี US รวม Apple, Google, Microsoft, Tesla ผลตอบแทนสูงแต่ผันผวนกว่า S&P',
     riskLabel: 'ปานกลาง-สูง',
+    tags: ['long-term'],
     brokerSlugs: ['jitta-wealth', 'finnomena'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 1,000 บาท',
     avgReturn: '~10-15%/ปี',
@@ -247,6 +286,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'etf',
     description: 'ดัชนีรวมหุ้นทั้งตลาดหลักทรัพย์ไทย ลงทุนผ่านกองทุน SET50 หรือ ThaiDEX ได้',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['settrade', 'scb-easy', 'kbank-invest'],
     minBuy: 'ผ่านกองทุน เริ่มต้น 500 บาท',
     avgReturn: '~5-10%/ปี',
@@ -260,6 +300,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'gold',
     description: 'ทองคำ สินทรัพย์ปลอดภัยที่มักขึ้นเวลาเศรษฐกิจไม่ดี ช่วยกระจายความเสี่ยง',
     riskLabel: 'ต่ำ-ปานกลาง',
+    tags: ['beginner', 'safe-haven'],
     brokerSlugs: ['mts-gold', 'kbank-invest'],
     minBuy: 'ทองแท่ง 1 สลึง (~9,000 บาท) หรือกองทุน 1,000 บาท',
     avgReturn: '~8-12%/ปี',
@@ -271,6 +312,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'commodity',
     description: 'โลหะเงิน ใช้ทั้งในอุตสาหกรรมและเป็นสินทรัพย์ปลอดภัย ผันผวนมากกว่าทอง',
     riskLabel: 'ปานกลาง',
+    tags: ['advanced', 'volatile'],
     brokerSlugs: ['mts-gold'],
     minBuy: 'ผ่านกองทุนหรือ CFD เริ่มต้น 1,000 บาท',
     avgReturn: '~5-15%/ปี',
@@ -282,6 +324,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'commodity',
     description: 'น้ำมันดิบ WTI ราคาขึ้นลงตามเศรษฐกิจโลกและภูมิรัฐศาสตร์ ไม่แนะนำสำหรับมือใหม่',
     riskLabel: 'สูง',
+    tags: ['advanced', 'volatile'],
     brokerSlugs: [],
     minBuy: 'ผ่าน CFD หรือ ETF ต่างประเทศ',
     avgReturn: 'ผันผวนตามสถานการณ์โลก',
@@ -295,6 +338,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'fund',
     description: 'กองทุนรวมที่ลงทุนในทองคำ ซื้อง่ายผ่านแอปธนาคาร ไม่ต้องเก็บทองจริง',
     riskLabel: 'ต่ำ-ปานกลาง',
+    tags: ['beginner', 'safe-haven'],
     brokerSlugs: ['finnomena', 'kbank-invest', 'scb-easy'],
     minBuy: 'เริ่มต้น 1,000 บาท',
     avgReturn: '~8-12%/ปี (ตามราคาทองคำ)',
@@ -306,6 +350,7 @@ export const ASSETS: Record<string, AssetConfig> = {
     category: 'fund',
     description: 'กองทุนของ KASSET ที่ลงทุนตามดัชนี S&P500 ผ่าน K PLUS ได้เลย DCA ง่ายมาก',
     riskLabel: 'ปานกลาง',
+    tags: ['beginner', 'long-term'],
     brokerSlugs: ['kbank-invest', 'finnomena'],
     minBuy: 'เริ่มต้น 500 บาท',
     avgReturn: '~8-12%/ปี (ตามดัชนี S&P500)',

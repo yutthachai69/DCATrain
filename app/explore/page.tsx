@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ASSETS } from '@/lib/assets';
+import { ASSETS, TAG_CONFIG } from '@/lib/assets';
 import { CATEGORIES } from '@/lib/catalog';
 
 export default function ExplorePage() {
@@ -44,7 +44,14 @@ export default function ExplorePage() {
                     className="flex items-center justify-between px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     <div>
-                      <p className="font-semibold text-ink">{cfg.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-ink">{cfg.name}</p>
+                        {cfg.tags.includes('beginner') && (
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TAG_CONFIG.beginner.color}`}>
+                            {TAG_CONFIG.beginner.label}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{key} · {cfg.riskLabel}</p>
                     </div>
                     <span className="text-xs text-cyan-600 dark:text-cyan-400">วิเคราะห์ →</span>
@@ -58,6 +65,7 @@ export default function ExplorePage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((cat) => {
             const assets = allAssets.filter(([, c]) => c.category === cat.slug);
+            const beginnerCount = assets.filter(([, c]) => c.tags.includes('beginner')).length;
             return (
               <Link
                 key={cat.slug}
@@ -68,7 +76,10 @@ export default function ExplorePage() {
                   <span className="text-3xl">{cat.icon}</span>
                   <div>
                     <h2 className="text-lg font-bold text-ink">{cat.name}</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{assets.length} สินทรัพย์ · ความเสี่ยง {cat.riskLevel}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {assets.length} สินทรัพย์ · ความเสี่ยง {cat.riskLevel}
+                      {beginnerCount > 0 && <span className="ml-1 text-emerald-600 dark:text-emerald-400">· {beginnerCount} ตัวแนะนำมือใหม่</span>}
+                    </p>
                   </div>
                 </div>
                 <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{cat.description}</p>

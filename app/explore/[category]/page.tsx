@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CATEGORIES, getCategory } from '@/lib/catalog';
-import { ASSETS, getAssetsByCategory } from '@/lib/assets';
+import { ASSETS, getAssetsByCategory, TAG_CONFIG } from '@/lib/assets';
 
 type Props = { params: { category: string } };
 
@@ -79,9 +79,14 @@ export default function CategoryPage({ params }: Props) {
                 className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-cyan-300 dark:border-slate-600 dark:bg-slate-700/50 dark:hover:border-cyan-600"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="font-bold text-ink">{cfg.name}</p>
                     <span className="rounded bg-slate-200 px-1.5 py-0.5 text-xs text-slate-600 dark:bg-slate-600 dark:text-slate-400">{key}</span>
+                    {cfg.tags.map((tag) => (
+                      <span key={tag} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TAG_CONFIG[tag].color}`}>
+                        {TAG_CONFIG[tag].label}
+                      </span>
+                    ))}
                   </div>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{cfg.description}</p>
                   <div className="mt-1 flex gap-3 text-xs text-slate-500 dark:text-slate-400">

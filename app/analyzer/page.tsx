@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ASSETS, GLOSSARY, getBrokersForAsset } from '@/lib/assets';
+import { ASSETS, GLOSSARY, TAG_CONFIG, getBrokersForAsset } from '@/lib/assets';
 import { getBrokerLink } from '@/lib/brokers';
 import type { Analysis } from '@/lib/analysis';
 import Metric from '@/components/ui/Metric';
@@ -102,7 +102,9 @@ function AnalyzerContent() {
               aria-label="เลือกสินทรัพย์ที่ต้องการวิเคราะห์"
             >
               {Object.entries(ASSETS).map(([key, value]) => (
-                <option key={key} value={key}>{`${key} — ${value.name}`}</option>
+                <option key={key} value={key}>
+                  {value.tags.includes('beginner') ? `⭐ ${key} — ${value.name}` : `${key} — ${value.name}`}
+                </option>
               ))}
             </select>
           </label>
@@ -246,6 +248,13 @@ function AssetBuyingGuide({ assetKey }: { assetKey: string }) {
   return (
     <section className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
       <h3 className="text-xl font-bold text-ink">รู้จัก {assetKey} — {assetConfig.name}</h3>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {assetConfig.tags.map((tag) => (
+          <span key={tag} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TAG_CONFIG[tag].color}`}>
+            {TAG_CONFIG[tag].label}
+          </span>
+        ))}
+      </div>
       <p className="mt-2 text-slate-600 dark:text-slate-400">{assetConfig.description}</p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
