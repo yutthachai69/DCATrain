@@ -5,12 +5,7 @@ export const alt = 'DCA — แนะนำการลงทุนสำหร�
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function OGImage() {
-  const logoData = await fetch(
-    new URL('/public/LogoDCA.png', import.meta.url),
-  ).then((res) => res.arrayBuffer());
-  const logoSrc = `data:image/png;base64,${Buffer.from(logoData).toString('base64')}`;
-
+export default function OGImage() {
   return new ImageResponse(
     (
       <div
@@ -25,8 +20,24 @@ export default async function OGImage() {
           fontFamily: 'system-ui, sans-serif',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoSrc} alt="" width={120} height={120} />
+        <div
+          style={{
+            fontSize: '80px',
+            marginBottom: '8px',
+          }}
+        >
+          📊
+        </div>
+        <div
+          style={{
+            color: '#22d3ee',
+            fontSize: '52px',
+            fontWeight: 900,
+            letterSpacing: '-1px',
+          }}
+        >
+          DCA
+        </div>
         <div
           style={{
             color: 'white',
