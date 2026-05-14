@@ -15,12 +15,21 @@ type SearchResult = {
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW = 60_000;
 const RATE_LIMIT_MAX = 20;
+const MAX_MAP_SIZE = 300;
+
+function pruneMap(map: Map<string, unknown>, maxSize: number) {
+  if (map.size > maxSize) {
+    const keysToDelete = Array.from(map.keys()).slice(0, map.size - maxSize);
+    for (const k of keysToDelete) map.delete(k);
+  }
+}
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const timestamps = rateLimitMap.get(ip) || [];
   const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
   rateLimitMap.set(ip, recent);
+  pruneMap(rateLimitMap, MAX_MAP_SIZE);
   if (recent.length >= RATE_LIMIT_MAX) return true;
   recent.push(now);
   return false;
@@ -30,7 +39,7 @@ const searchCache = new Map<string, { data: SearchResult[]; expiry: number }>();
 const CACHE_TTL = 10 * 60 * 1000;
 
 export async function GET(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const ip = (request.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
   if (isRateLimited(ip)) {
     return NextResponse.json({ error: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
   }
@@ -93,6 +102,7 @@ export async function GET(request: Request) {
 
   const limited = results.slice(0, 20);
   searchCache.set(q.toLowerCase(), { data: limited, expiry: Date.now() + CACHE_TTL });
+  pruneMap(searchCache, MAX_MAP_SIZE);
 
   return NextResponse.json({ results: limited });
 }

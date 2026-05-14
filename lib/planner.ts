@@ -62,7 +62,7 @@ export function createPlan(profile: PlannerProfile): PlannerResult {
   const monthlyInvestment = Math.max(Math.min(investmentBudget, freeCash), 0);
   const requiredEmergencyMonths = jobStability === 'พนักงานประจำ' ? 6 : 12;
   const emergencyTarget = expense * requiredEmergencyMonths;
-  const emergencyMonths = expense > 0 ? savings / expense : 6;
+  const emergencyMonths = expense > 0 ? Math.min(savings / expense, 999) : (savings > 0 ? 999 : 0);
   const years = horizon === 'น้อยกว่า 1 ปี' ? 1 : horizon === '1–3 ปี' ? 3 : horizon === '3–10 ปี' ? 7 : 15;
   const riskScore = calculateRiskScore(risk, horizon, jobStability, lossTolerance, experience);
   const expectedReturn = riskScore < 35 ? 0.04 : riskScore < 70 ? 0.07 : 0.1;
@@ -125,10 +125,10 @@ function getAllocationItems(goal: Goal, riskScore: number, horizon: Horizon) {
   }
   if (riskScore < 70) {
     return [
-      { label: 'S&P 500', percent: 55, color: '#0891b2' },
+      { label: 'S&P 500', percent: 50, color: '#0891b2' },
       { label: 'หุ้นไทย/หุ้นคุณภาพ', percent: 20, color: '#16a34a' },
-      { label: 'ทองคำ', percent: 15, color: '#f59e0b' },
-      { label: 'Crypto', percent: goal === 'เก็งกำไรระยะสั้น' ? 10 : 5, color: '#8b5cf6' },
+      { label: 'ทองคำ', percent: 20, color: '#f59e0b' },
+      { label: 'Crypto', percent: goal === 'เก็งกำไรระยะสั้น' ? 10 : 10, color: '#8b5cf6' },
     ];
   }
   return [
@@ -147,19 +147,133 @@ function getRecommendedAsset(goal: Goal, risk: RiskLevel, horizon: Horizon) {
   return 'AAPL';
 }
 
+export type PersonalizedAdvice = {
+  topPicks: Array<{
+    assetKey: string;
+    reason: string;
+    suggestedMonthly: number;
+    percent: number;
+  }>;
+  timeline: string;
+  monthlyBreakdown: string;
+  keyAdvice: string[];
+  riskWarning: string;
+};
+
+export function generatePersonalizedAdvice(
+  profile: PlannerProfile,
+  plan: PlannerResult,
+): PersonalizedAdvice {
+  const { goal, risk, horizon } = profile;
+  const { monthlyInvestment, riskScore, years } = plan;
+
+  const picks: PersonalizedAdvice['topPicks'] = [];
+  const keyAdvice: string[] = [];
+
+  if (riskScore < 35) {
+    picks.push(
+      { assetKey: 'S&P500', reason: 'ดัชนี 500 บริษัทใหญ่สุดในสหรัฐ กระจายความเสี่ยงดี เหมาะมือใหม่', suggestedMonthly: 0, percent: 40 },
+      { assetKey: 'ทอง', reason: 'สินทรัพย์ปลอดภัยช่วยป้องกันเงินเฟ้อ ราคาไม่ผันผวนมาก', suggestedMonthly: 0, percent: 30 },
+      { assetKey: 'TMBGOLDS', reason: 'กองทุนทองคำซื้อง่ายผ่านแอปธนาคาร ไม่ต้องเก็บทองจริง', suggestedMonthly: 0, percent: 20 },
+      { assetKey: 'K-US500X', reason: 'กองทุน S&P500 ของ KBank DCA ผ่าน K PLUS เริ่ม 500 บาท', suggestedMonthly: 0, percent: 10 },
+    );
+  } else if (riskScore < 70) {
+    picks.push(
+      { assetKey: 'S&P500', reason: 'แกนหลักของพอร์ต ผลตอบแทนเฉลี่ย 10% ต่อปี', suggestedMonthly: 0, percent: 35 },
+      { assetKey: 'BTC', reason: 'Crypto อันดับ 1 ผันผวนแต่ให้ผลตอบแทนสูงในระยะยาว', suggestedMonthly: 0, percent: 15 },
+      { assetKey: 'ทอง', reason: 'ช่วยลดความผันผวนของพอร์ตเมื่อตลาดหุ้นลง', suggestedMonthly: 0, percent: 15 },
+    );
+    if (goal === 'สร้างรายได้เพิ่ม') {
+      picks.push(
+        { assetKey: 'PTT.BK', reason: 'หุ้นปันผลดี จ่ายทุกปี เหมาะสร้างรายได้', suggestedMonthly: 0, percent: 20 },
+        { assetKey: 'SCB.BK', reason: 'หุ้นธนาคารใหญ่ปันผลสม่ำเสมอ', suggestedMonthly: 0, percent: 15 },
+      );
+    } else {
+      picks.push(
+        { assetKey: 'AAPL', reason: 'บริษัทเทคโนโลยีที่ใหญ่ที่สุดในโลก เติบโตต่อเนื่อง', suggestedMonthly: 0, percent: 20 },
+        { assetKey: 'CPALL.BK', reason: 'เจ้าของ 7-Eleven ในไทย รายได้มั่นคง', suggestedMonthly: 0, percent: 15 },
+      );
+    }
+  } else {
+    picks.push(
+      { assetKey: 'BTC', reason: 'Crypto อันดับ 1 ผลตอบแทนสูงสุดในสินทรัพย์ดิจิทัล', suggestedMonthly: 0, percent: 25 },
+      { assetKey: 'ETH', reason: 'Blockchain อันดับ 2 มี use case จริง DeFi, NFT, Smart Contract', suggestedMonthly: 0, percent: 15 },
+      { assetKey: 'S&P500', reason: 'แกนหลักที่ช่วยกระจายความเสี่ยง', suggestedMonthly: 0, percent: 25 },
+      { assetKey: 'MSFT', reason: 'รายได้จาก Cloud + AI เติบโตต่อเนื่อง', suggestedMonthly: 0, percent: 15 },
+      { assetKey: 'ทอง', reason: 'ลดความผันผวนของพอร์ต', suggestedMonthly: 0, percent: 10 },
+    );
+    if (goal === 'เก็งกำไรระยะสั้น') {
+      picks.push(
+        { assetKey: 'SOL', reason: 'Blockchain เร็ว ค่าธรรมเนียมถูก เป็นคู่แข่ง ETH', suggestedMonthly: 0, percent: 10 },
+      );
+    } else {
+      picks.push(
+        { assetKey: 'TSLA', reason: 'ผู้นำ EV + AI ราคาผันผวนแต่มี upside สูง', suggestedMonthly: 0, percent: 10 },
+      );
+    }
+  }
+
+  for (const pick of picks) {
+    pick.suggestedMonthly = Math.round((monthlyInvestment * pick.percent) / 100);
+  }
+
+  if (profile.savings < profile.expense * plan.requiredEmergencyMonths) {
+    keyAdvice.push(`เก็บเงินสำรองฉุกเฉินให้ได้ ${plan.requiredEmergencyMonths} เดือนก่อน (${formatSimple(profile.expense * plan.requiredEmergencyMonths)} บาท) แล้วค่อยเพิ่มเงินลงทุน`);
+  }
+  if (profile.debtAmount > 0 && profile.debtRate >= 12) {
+    keyAdvice.push('เร่งปิดหนี้ดอกเบี้ยสูงก่อน เพราะดอกเบี้ยหนี้มากกว่าผลตอบแทนลงทุน');
+  }
+  keyAdvice.push(`ตั้ง DCA อัตโนมัติทุกวันที่ 1 หรือวันเงินเดือนออก อย่าข้ามเดือน`);
+  keyAdvice.push('ปีแรกไม่ต้องดูผลตอบแทนบ่อย ดูไตรมาสละครั้งก็พอ');
+  if (horizon === '3–10 ปี' || horizon === '10 ปีขึ้นไป') {
+    keyAdvice.push('ระยะยาวยิ่งดี ยิ่ง DCA นานยิ่งลดความเสี่ยงจากจังหวะ');
+  }
+  if (risk === 'สูง — รับได้มาก') {
+    keyAdvice.push('พอร์ตเสี่ยงสูงอาจติดลบ 20-40% ในปีแย่ — ถ้าใจไม่นิ่งอาจต้องลดสัดส่วน Crypto ลง');
+  }
+
+  const expectedReturnAdv = riskScore < 35 ? 0.04 : riskScore < 70 ? 0.07 : 0.1;
+  const monthlyRateAdv = expectedReturnAdv / 12;
+  const targetYears = profile.targetAmount > 0 && monthlyInvestment > 0 && monthlyRateAdv > 0
+    ? Math.ceil(Math.log(1 + (profile.targetAmount * monthlyRateAdv) / monthlyInvestment) / (12 * Math.log(1 + monthlyRateAdv)))
+    : years;
+
+  const timeline = profile.targetAmount > 0
+    ? `ด้วยเงินลงทุนเดือนละ ${formatSimple(monthlyInvestment)} บาท คาดว่าจะถึงเป้าหมาย ${formatSimple(profile.targetAmount)} บาท ภายในประมาณ ${targetYears} ปี`
+    : `ด้วยเงินลงทุนเดือนละ ${formatSimple(monthlyInvestment)} บาท ใน ${years} ปี คาดว่าจะมีเงินประมาณ ${formatSimple(Math.round(plan.projectedValue))} บาท`;
+
+  const monthlyBreakdown = picks
+    .map((p) => `${p.assetKey}: ${formatSimple(p.suggestedMonthly)} บาท/เดือน (${p.percent}%)`)
+    .join(' · ');
+
+  const riskWarning = riskScore < 35
+    ? 'พอร์ตนี้เน้นความมั่นคง ผลตอบแทนอาจไม่สูงแต่ขาดทุนน้อย เหมาะกับคนที่ต้องการความปลอดภัย'
+    : riskScore < 70
+      ? 'พอร์ตนี้สมดุลระหว่างการเติบโตและความเสี่ยง อาจขาดทุน 10-20% ในปีที่ตลาดลง แต่ระยะยาว 5+ ปีมักได้ผลตอบแทนดี'
+      : 'พอร์ตนี้เน้นผลตอบแทนสูง แต่ความผันผวนสูงมาก อาจขาดทุน 30-50% ในช่วงตลาดลง ต้องอดทนและมีเวลา 7+ ปี';
+
+  return { topPicks: picks, timeline, monthlyBreakdown, keyAdvice, riskWarning };
+}
+
+function formatSimple(n: number): string {
+  return n.toLocaleString('th-TH', { maximumFractionDigits: 0 });
+}
+
 const STORAGE_KEY = 'investment-planner-profile';
 
 export function loadProfile(): Partial<PlannerProfile> | null {
+  if (typeof window === 'undefined') return null;
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (!saved) return null;
     return JSON.parse(saved) as Partial<PlannerProfile>;
   } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* SSR safe */ }
     return null;
   }
 }
 
 export function saveProfile(profile: PlannerProfile) {
+  if (typeof window === 'undefined') return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 }

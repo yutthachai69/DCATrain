@@ -13,10 +13,5 @@
 }
 
 body {
-  background: #f8fafc;
   color: var(--color-ink);
-}
-
-.dark body {
-  background: #0f172a;
 }

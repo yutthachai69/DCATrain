@@ -8,6 +8,9 @@ type Props = {
 };
 
 export default function PriceChart({ data }: Props) {
+  if (!data || data.length === 0) {
+    return <div className="flex h-full items-center justify-center text-slate-400">ไม่มีข้อมูลราคา</div>;
+  }
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>

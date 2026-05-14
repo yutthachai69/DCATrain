@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ASSETS, TAG_CONFIG } from '@/lib/assets';
 import { CATEGORIES } from '@/lib/catalog';
 
 export default function ExplorePage() {
   const [query, setQuery] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(true);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const allAssets = Object.entries(ASSETS);
   const filtered = query.trim()
@@ -15,6 +17,16 @@ export default function ExplorePage() {
         cfg.name.toLowerCase().includes(query.toLowerCase()),
       )
     : [];
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-cyan-50 px-5 py-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -26,15 +38,17 @@ export default function ExplorePage() {
             เลือกหมวดที่สนใจ หรือค้นหาสินทรัพย์ที่ต้องการ
           </p>
 
-          <div className="relative mt-4">
+          <div className="relative mt-4" ref={searchRef}>
             <input
               type="text"
               placeholder="ค้นหา เช่น Bitcoin, PTT, Apple, ทอง..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); setDropdownOpen(true); }}
+              onKeyDown={(e) => { if (e.key === 'Escape') setDropdownOpen(false); }}
+              aria-label="ค้นหาสินทรัพย์"
               className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-cyan-900"
             />
-            {filtered.length > 0 && (
+            {filtered.length > 0 && dropdownOpen && (
               <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
                 {filtered.map(([key, cfg]) => (
                   <Link

@@ -1,9 +1,18 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeProvider from '@/components/ThemeProvider';
 import './globals.css';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dca-invest.vercel.app'),
@@ -23,7 +32,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body className="bg-slate-50 text-ink transition-colors dark:bg-slate-950 dark:text-slate-100">
+      <body className="bg-slate-50 text-ink transition-colors dark:bg-slate-950 dark:text-slate-100" suppressHydrationWarning>
         <ThemeProvider>
           <a
             href="#main-content"
@@ -32,7 +41,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             ข้ามไปเนื้อหาหลัก
           </a>
           <Header />
-          <div id="main-content">{children}</div>
+          <main id="main-content">{children}</main>
           <Footer />
         </ThemeProvider>
       </body>

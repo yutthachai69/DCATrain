@@ -14,9 +14,11 @@ import {
   GOALS, RISK_LEVELS, HORIZONS, JOB_STABILITIES,
   DEFAULT_PROFILE,
   createPlan,
+  generatePersonalizedAdvice,
   loadProfile,
   saveProfile,
 } from '@/lib/planner';
+import { ASSETS, TAG_CONFIG } from '@/lib/assets';
 import { formatBaht } from '@/lib/format';
 import { PORTFOLIOS, RISK_LABELS, RISK_COLORS } from '@/lib/portfolios';
 
@@ -42,6 +44,7 @@ export default function PlannerPage() {
   }, [profile, loaded]);
 
   const plan = useMemo(() => createPlan(profile), [profile]);
+  const advice = useMemo(() => generatePersonalizedAdvice(profile, plan), [profile, plan]);
 
   const update = <K extends keyof PlannerProfile>(key: K, value: PlannerProfile[K]) => {
     setProfile((prev) => ({ ...prev, [key]: value }));
@@ -217,6 +220,65 @@ export default function PlannerPage() {
                     {warning}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Personalized Advice */}
+            <div className="rounded-3xl border border-cyan-200 bg-cyan-50 p-6 shadow-sm dark:border-cyan-800 dark:bg-cyan-950">
+              <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-400">คำแนะนำเฉพาะคุณ</p>
+              <p className="mt-2 text-base font-medium text-cyan-900 dark:text-cyan-200">{advice.timeline}</p>
+              <p className="mt-1 text-sm text-cyan-700 dark:text-cyan-400">{advice.riskWarning}</p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <h3 className="text-lg font-bold text-ink">สินทรัพย์ที่แนะนำสำหรับคุณ</h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">จัดสัดส่วนตาม Risk Score ของคุณ · DCA เดือนละ {formatBaht(plan.monthlyInvestment)}</p>
+              <div className="mt-4 space-y-3">
+                {advice.topPicks.map((pick) => {
+                  const asset = ASSETS[pick.assetKey];
+                  return (
+                    <div key={pick.assetKey} className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-700/50">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-lg font-bold text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300">
+                        {pick.percent}%
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-bold text-ink">{pick.assetKey}</p>
+                          {asset && <span className="text-sm text-slate-500 dark:text-slate-400">{asset.name}</span>}
+                          {asset?.tags.includes('beginner') && (
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TAG_CONFIG.beginner.color}`}>
+                              {TAG_CONFIG.beginner.label}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{pick.reason}</p>
+                        <p className="mt-1 text-xs font-semibold text-cyan-700 dark:text-cyan-400">
+                          DCA: {formatBaht(pick.suggestedMonthly)}/เดือน
+                        </p>
+                      </div>
+                      <Link
+                        href={`/analyzer?asset=${encodeURIComponent(pick.assetKey)}`}
+                        className="shrink-0 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-cyan-700"
+                      >
+                        วิเคราะห์
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {advice.keyAdvice.length > 0 && (
+              <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm dark:border-amber-800 dark:bg-amber-950">
+                <h3 className="font-bold text-amber-800 dark:text-amber-300">สิ่งที่ควรทำก่อนเริ่ม</h3>
+                <ul className="mt-3 space-y-2">
+                  {advice.keyAdvice.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-amber-700 dark:text-amber-400">
+                      <span className="shrink-0 font-bold">{i + 1}.</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

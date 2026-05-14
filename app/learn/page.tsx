@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { LESSONS } from '@/lib/lessons';
 
 export const metadata: Metadata = {
   title: 'เรียนรู้ DCA — การลงทุนแบบง่ายที่สุด',
@@ -55,6 +56,27 @@ export default function LearnPage() {
           <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-400">เรียนรู้ก่อนลงทุน</p>
           <h1 className="mt-2 text-3xl font-black text-ink md:text-5xl">การลงทุนแบบ DCA<br />อธิบายแบบง่ายที่สุด</h1>
           <p className="mt-4 text-slate-600 dark:text-slate-400">อ่านจบภายใน 3 นาที แล้วคุณจะเข้าใจทุกอย่างที่ต้องรู้ก่อนเริ่มลงทุน</p>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <h2 className="text-xl font-bold text-ink">บทเรียนทั้งหมด ({LESSONS.length} บท)</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">เรียนตามลำดับหรือเลือกเรื่องที่สนใจ</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {LESSONS.map((lesson, i) => (
+              <Link
+                key={lesson.slug}
+                href={`/learn/${lesson.slug}`}
+                className="group flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-cyan-300 hover:shadow-sm dark:border-slate-600 dark:bg-slate-700/50 dark:hover:border-cyan-600"
+              >
+                <span className="text-2xl">{lesson.icon}</span>
+                <div>
+                  <p className="text-xs text-slate-400">บทที่ {i + 1} · {lesson.readTime}</p>
+                  <p className="mt-0.5 font-bold text-ink group-hover:text-cyan-700 dark:group-hover:text-cyan-400">{lesson.title}</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{lesson.subtitle}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
 
         {SECTIONS.map((section) => (

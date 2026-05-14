@@ -24,18 +24,29 @@ export default function ComparePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setError('');
-    Promise.all([
-      fetchAsset(left),
-      fetchAsset(right),
-    ]).then(([l, r]) => {
-      setLeftData(l);
-      setRightData(r);
-      if (!l || !r) setError('ดึงข้อมูลบางสินทรัพย์ไม่สำเร็จ กรุณาลองใหม่');
-    }).catch(() => {
-      setError('เกิดข้อผิดพลาดในการดึงข้อมูล');
-    }).finally(() => setLoading(false));
+
+    const fetchBoth = async () => {
+      try {
+        const [l, r] = await Promise.all([
+          fetchAsset(left, controller.signal),
+          left === right ? fetchAsset(right, controller.signal) : fetchAsset(right, controller.signal),
+        ]);
+        if (controller.signal.aborted) return;
+        setLeftData(l);
+        setRightData(left === right ? l : r);
+        if (!l || (!r && left !== right)) setError('ดึงข้อมูลบางสินทรัพย์ไม่สำเร็จ กรุณาลองใหม่');
+      } catch (e) {
+        if (!controller.signal.aborted) setError('เกิดข้อผิดพลาดในการดึงข้อมูล');
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    fetchBoth();
+
+    return () => controller.abort();
   }, [left, right]);
 
   return (
@@ -223,9 +234,9 @@ function CompareBuyingInfo({ leftKey, rightKey }: { leftKey: string; rightKey: s
   );
 }
 
-async function fetchAsset(key: string): Promise<ApiResponse | null> {
+async function fetchAsset(key: string, signal?: AbortSignal): Promise<ApiResponse | null> {
   try {
-    const res = await fetch(`/api/analysis?asset=${encodeURIComponent(key)}&days=365`);
+    const res = await fetch(`/api/analysis?asset=${encodeURIComponent(key)}&days=365`, { signal });
     if (!res.ok) return null;
     return await res.json();
   } catch {

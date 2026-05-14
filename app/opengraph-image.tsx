@@ -5,7 +5,21 @@ export const alt = 'DCA — แนะนำการลงทุนสำหร�
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default function OGImage() {
+async function loadFont(): Promise<ArrayBuffer | undefined> {
+  try {
+    const res = await fetch('https://fonts.gstatic.com/s/notosansthai/v25/iJWnBXeUZi_OHPqn4wq6hQ2_hbJ1vu37.ttf');
+    if (res.ok) return await res.arrayBuffer();
+  } catch { /* fall through */ }
+  return undefined;
+}
+
+export default async function OGImage() {
+  const fontData = await loadFont();
+  const fontFamily = fontData ? 'NotoSansThai' : 'system-ui, sans-serif';
+  const fonts = fontData
+    ? [{ name: 'NotoSansThai', data: fontData, style: 'normal' as const, weight: 700 as const }]
+    : undefined;
+
   return new ImageResponse(
     (
       <div
@@ -17,7 +31,7 @@ export default function OGImage() {
           alignItems: 'center',
           justifyContent: 'center',
           background: 'linear-gradient(135deg, #0f172a 0%, #0e7490 100%)',
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily,
         }}
       >
         <div
@@ -79,6 +93,6 @@ export default function OGImage() {
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, ...(fonts ? { fonts } : {}) },
   );
 }

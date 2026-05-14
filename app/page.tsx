@@ -75,10 +75,10 @@ export default function WelcomePage() {
             ลองจำลอง DCA
           </Link>
           <Link
-            href="/learn"
-            className="rounded-2xl border border-slate-300 bg-white px-8 py-4 text-lg font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            href="/backtest"
+            className="rounded-2xl border border-emerald-300 bg-emerald-50 px-8 py-4 text-lg font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 dark:hover:bg-emerald-900"
           >
-            DCA คืออะไร?
+            Backtest ย้อนหลัง
           </Link>
         </div>
       </section>

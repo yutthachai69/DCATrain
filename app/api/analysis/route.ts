@@ -23,18 +23,33 @@ type YahooQuote = {
   volume?: Array<number | null>;
 };
 
+const MAX_CACHE_SIZE = 200;
 const cache = new Map<string, { data: unknown; expiry: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 
+const MAX_RATE_LIMIT_KEYS = 500;
 const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX = 30; // 30 requests per minute per IP
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const RATE_LIMIT_MAX = 30;
+
+function pruneMap(map: Map<string, unknown>, maxSize: number) {
+  if (map.size > maxSize) {
+    const keysToDelete = Array.from(map.keys()).slice(0, map.size - maxSize);
+    for (const k of keysToDelete) map.delete(k);
+  }
+}
+
+function parseClientIp(header: string | null): string {
+  if (!header) return 'unknown';
+  return header.split(',')[0].trim() || 'unknown';
+}
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const timestamps = rateLimitMap.get(ip) || [];
   const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
   rateLimitMap.set(ip, recent);
+  pruneMap(rateLimitMap, MAX_RATE_LIMIT_KEYS);
   if (recent.length >= RATE_LIMIT_MAX) return true;
   recent.push(now);
   return false;
@@ -42,7 +57,7 @@ function isRateLimited(ip: string): boolean {
 
 export async function GET(request: Request) {
   try {
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = parseClientIp(request.headers.get('x-forwarded-for'));
     if (isRateLimited(ip)) {
       return NextResponse.json({ error: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
     }
@@ -94,6 +109,7 @@ export async function GET(request: Request) {
     const responseData = { assetKey, asset: assetInfo, analysis };
 
     cache.set(cacheKey, { data: responseData, expiry: Date.now() + CACHE_TTL });
+    pruneMap(cache, MAX_CACHE_SIZE);
 
     return NextResponse.json(responseData);
   } catch (error) {

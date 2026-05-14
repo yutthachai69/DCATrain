@@ -46,39 +46,48 @@ export function analyzeAsset(data: PricePoint[]): Analysis {
   const reasons: string[] = [];
   const cautions: string[] = [];
 
-  if (latest.close > latest.ma30! && latest.ma30! > latest.ma90!) {
+  const ma30 = latest.ma30 ?? latest.close;
+  const ma90 = latest.ma90 ?? latest.close;
+  const rsi = latest.rsi ?? 50;
+  const macd = latest.macd ?? 0;
+  const macdSignal = latest.macdSignal ?? 0;
+  const prevMacd = previous.macd ?? 0;
+  const prevMacdSignal = previous.macdSignal ?? 0;
+  const volatility = latest.volatility ?? 0.5;
+
+  if (latest.close > ma30 && ma30 > ma90) {
     score += 2;
     reasons.push('ราคาอยู่เหนือค่าเฉลี่ย 30 และ 90 วัน แปลว่าแนวโน้มโดยรวมยังดูแข็งแรง');
-  } else if (latest.close < latest.ma30! && latest.ma30! < latest.ma90!) {
+  } else if (latest.close < ma30 && ma30 < ma90) {
     score -= 2;
     cautions.push('ราคาอยู่ต่ำกว่าค่าเฉลี่ยสำคัญ แนวโน้มยังอ่อนแรง');
   } else {
     reasons.push('แนวโน้มยังไม่ชัดเจน ราคาแกว่งใกล้ค่าเฉลี่ย');
   }
 
-  if (latest.rsi! >= 45 && latest.rsi! <= 65) {
+  if (rsi >= 45 && rsi <= 65) {
     score += 1;
     reasons.push('RSI อยู่ในโซนกลาง ยังไม่ร้อนแรงเกินไป');
-  } else if (latest.rsi! > 70) {
+  } else if (rsi > 70) {
     score -= 1;
     cautions.push('RSI สูงกว่า 70 อาจเริ่มแพงหรือถูกซื้อมากเกินไป');
-  } else if (latest.rsi! < 30) {
+  } else if (rsi < 30) {
     score -= 1;
     cautions.push('RSI ต่ำกว่า 30 แปลว่าราคาลงแรง ควรรอสัญญาณฟื้นตัวก่อน');
   }
 
-  if (latest.macd! > latest.macdSignal! && previous.macd! <= previous.macdSignal!) {
+  if (macd > macdSignal && prevMacd <= prevMacdSignal) {
     score += 1;
     reasons.push('MACD เพิ่งตัดขึ้น เป็นสัญญาณบวกในระยะสั้น');
-  } else if (latest.macd! < latest.macdSignal!) {
+  } else if (macd < macdSignal) {
     score -= 1;
     cautions.push('MACD ยังต่ำกว่าเส้นสัญญาณ โมเมนตัมระยะสั้นยังไม่ดี');
   }
 
-  if (latest.volatility! > 0.75) {
+  if (volatility > 0.75) {
     score -= 1;
     cautions.push('ความผันผวนสูงมาก เหมาะกับเงินเย็นและควรแบ่งไม้');
-  } else if (latest.volatility! < 0.25) {
+  } else if (volatility < 0.25) {
     score += 1;
     reasons.push('ความผันผวนไม่สูงมากเมื่อเทียบกับสินทรัพย์เสี่ยง');
   }
@@ -90,12 +99,12 @@ export function analyzeAsset(data: PricePoint[]): Analysis {
     latestPrice: latest.close,
     change30d: periodChange(frame, 30),
     change90d: periodChange(frame, 90),
-    rsi: latest.rsi!,
-    macd: latest.macd!,
-    macdSignal: latest.macdSignal!,
-    volatility: latest.volatility!,
-    ma30: latest.ma30!,
-    ma90: latest.ma90!,
+    rsi,
+    macd,
+    macdSignal,
+    volatility,
+    ma30,
+    ma90,
     reasons,
     cautions,
     advice: plainThaiAdvice(signal),
@@ -139,8 +148,8 @@ function rollingStd(values: Array<number | null>, period: number): Array<number 
     if (index + 1 < period) return null;
     const slice = values.slice(index + 1 - period, index + 1).filter((value): value is number => value !== null);
     if (slice.length < period) return null;
-    const mean = slice.reduce((sum, value) => sum + value, 0) / period;
-    const variance = slice.reduce((sum, value) => sum + (value - mean) ** 2, 0) / period;
+    const mean = slice.reduce((sum, value) => sum + value, 0) / slice.length;
+    const variance = slice.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (slice.length - 1);
     return Math.sqrt(variance);
   });
 }
@@ -156,11 +165,15 @@ function ema(values: number[], period: number): number[] {
 function calculateRsi(closes: number[], period: number): Array<number | null> {
   return closes.map((_, index) => {
     if (index < period) return null;
-    const deltas = closes.slice(index + 1 - period, index + 1).map((close, deltaIndex, slice) => (deltaIndex === 0 ? 0 : close - slice[deltaIndex - 1]));
-    const gains = deltas.map((delta) => Math.max(delta, 0));
-    const losses = deltas.map((delta) => Math.max(-delta, 0));
-    const averageGain = gains.reduce((sum, value) => sum + value, 0) / period;
-    const averageLoss = losses.reduce((sum, value) => sum + value, 0) / period;
+    const window = closes.slice(index - period, index + 1);
+    const deltas: number[] = [];
+    for (let i = 1; i < window.length; i++) {
+      deltas.push(window[i] - window[i - 1]);
+    }
+    const gains = deltas.map((d) => Math.max(d, 0));
+    const losses = deltas.map((d) => Math.max(-d, 0));
+    const averageGain = gains.reduce((s, v) => s + v, 0) / deltas.length;
+    const averageLoss = losses.reduce((s, v) => s + v, 0) / deltas.length;
     if (averageLoss === 0) return 100;
     const rs = averageGain / averageLoss;
     return 100 - 100 / (1 + rs);
@@ -169,7 +182,7 @@ function calculateRsi(closes: number[], period: number): Array<number | null> {
 
 function periodChange(frame: EnrichedPoint[], days: number): number | null {
   if (frame.length <= days) return null;
-  return (frame[frame.length - 1].close / frame[frame.length - days].close - 1) * 100;
+  return (frame[frame.length - 1].close / frame[frame.length - 1 - days].close - 1) * 100;
 }
 
 function signalFromScore(score: number): Analysis['signal'] {

@@ -16,11 +16,15 @@ const TOOLS_NAV = [
   { href: '/analyzer', label: 'วิเคราะห์สินทรัพย์' },
   { href: '/compare', label: 'เปรียบเทียบ' },
   { href: '/simulator', label: 'จำลอง DCA' },
+  { href: '/backtest', label: 'Backtest ย้อนหลัง' },
 ];
 
 const MORE_NAV = [
+  { href: '/alerts', label: 'แจ้งเตือนราคา' },
   { href: '/how-to-buy', label: 'วิธีซื้อ' },
   { href: '/learn', label: 'เรียนรู้ DCA' },
+  { href: '/quiz', label: 'ทดสอบความรู้' },
+  { href: '/glossary', label: 'คลังศัพท์' },
 ];
 
 const ALL_NAV = [

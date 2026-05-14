@@ -8,6 +8,9 @@ type Props = {
 };
 
 export default function GrowthChart({ data }: Props) {
+  if (!data || data.length === 0) {
+    return <div className="flex h-full items-center justify-center text-slate-400">ไม่มีข้อมูลสำหรับกราฟ</div>;
+  }
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>

@@ -7,7 +7,10 @@ import Metric from '@/components/ui/Metric';
 import { formatBaht } from '@/lib/format';
 import { simulateDCA, RETURN_PRESETS } from '@/lib/simulator';
 
-const GrowthChart = dynamic(() => import('@/components/charts/GrowthChart'), { ssr: false });
+const GrowthChart = dynamic(() => import('@/components/charts/GrowthChart'), {
+  ssr: false,
+  loading: () => <div className="flex h-[400px] items-center justify-center text-slate-400">กำลังโหลดกราฟ...</div>,
+});
 
 export default function SimulatorPage() {
   const [monthly, setMonthly] = useState(3000);
@@ -110,16 +113,16 @@ export default function SimulatorPage() {
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Metric title="ลงทุนทั้งหมด" value={formatBaht(result.totalInvested)} />
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-800 dark:bg-emerald-950">
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">มูลค่าพอร์ต</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700 dark:text-emerald-300">{formatBaht(result.finalValue)}</p>
+          <div className={`rounded-2xl border p-5 shadow-sm ${result.totalGain >= 0 ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'}`}>
+            <p className={`text-sm ${result.totalGain >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>มูลค่าพอร์ต</p>
+            <p className={`mt-2 text-2xl font-bold ${result.totalGain >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>{formatBaht(result.finalValue)}</p>
           </div>
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-800 dark:bg-emerald-950">
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">กำไรสุทธิ</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-              +{formatBaht(result.totalGain)}
+          <div className={`rounded-2xl border p-5 shadow-sm ${result.totalGain >= 0 ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'}`}>
+            <p className={`text-sm ${result.totalGain >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>กำไรสุทธิ</p>
+            <p className={`mt-2 text-2xl font-bold ${result.totalGain >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
+              {result.totalGain >= 0 ? '+' : ''}{formatBaht(result.totalGain)}
             </p>
-            <p className="mt-1 text-xs text-emerald-500 dark:text-emerald-400">+{result.totalGainPercent.toFixed(1)}%</p>
+            <p className={`mt-1 text-xs ${result.totalGain >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>{result.totalGain >= 0 ? '+' : ''}{result.totalGainPercent.toFixed(1)}%</p>
           </div>
           <Metric title="มูลค่าเทียบเงินวันนี้" value={formatBaht(result.realValue)} />
         </section>
