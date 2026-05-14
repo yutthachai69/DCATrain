@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+}
+
+.dark {
+  --color-ink: #f1f5f9;
+  --color-muted: #94a3b8;
+}
+
+body {
+  background: #f8fafc;
+  color: var(--color-ink);
+}
+
+.dark body {
+  background: #0f172a;
+}
